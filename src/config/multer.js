@@ -1,4 +1,5 @@
 import multer from 'multer'
+import { pool } from './db.js'
 
 // funcion pra almacenar archivos
 const storage = multer.diskStorage({
@@ -7,9 +8,16 @@ const storage = multer.diskStorage({
     cb(null, './profiles')
   },
   // agregar fecha a los archivos subidos
-  filename: function (req, file, cb) {
-    const date = Date.now()
-    cb(null, `${date}-${file.originalname}`)
+  filename: async function (req, file, cb) {
+    const nombreArchivo = `${Date.now()}-${file.originalname}`
+    cb(null, nombreArchivo)
+
+    // agregar nombre a la BD
+    try {
+      await pool.execute('INSERT INTO usuarios(profile_picture) VALUES (?)', [nombreArchivo])
+    } catch (error) {
+      Error('hubo un error al subir el archivo')
+    }
   }
 })
 // filtra archivoa
